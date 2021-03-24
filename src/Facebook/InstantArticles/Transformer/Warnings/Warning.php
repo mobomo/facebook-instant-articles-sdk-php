@@ -55,7 +55,9 @@ abstract class Warning
                     return $this->node->nodeName . "." . str_replace(" ", ".", $class);
                 }
             }
-            return $this->node->nodeName;
+            if (!Type::is($this->node, 'DOMText')) {
+                return $this->node->nodeName;
+            }
         }
         return '';
     }
