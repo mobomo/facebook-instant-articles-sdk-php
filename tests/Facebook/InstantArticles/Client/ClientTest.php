@@ -19,7 +19,7 @@ class ClientTest extends TestCase
     private $article;
     private $facebook;
 
-    protected function setUp()
+    public function setUp(): void
     {
         $this->facebook = $this->getMockBuilder('Facebook\Facebook')
             ->disableOriginalConstructor()
@@ -135,23 +135,23 @@ class ClientTest extends TestCase
             ->willReturn($expectedSubmissionStatusID);
 
         $this->facebook
-            ->expects($this->at(0))
+            ->expects($this->exactly(2))
             ->method('post')
-            ->with('PAGE_ID' . Client::EDGE_NAME, [
-                'html_source' => $this->article->render(),
-                'published' => true,
-                'development_mode' => false,
-            ])
-            ->willReturn($serverResponseMock);
-
-        $this->facebook
-            ->expects($this->at(1))
-            ->method('post')
-            ->with('/', [
+            ->withConsecutive(
+              [
+                'PAGE_ID' . Client::EDGE_NAME, [
+                  'html_source' => $this->article->render(),
+                  'published' => true,
+                  'development_mode' => false,
+                ]
+              ],
+              [
+                '/', [
                 'id' => $this->article->getCanonicalURL(),
                 'scrape' => 'true',
-            ])
-            ->willReturn($serverResponseMock);
+                ]
+              ]
+            )->willReturn($serverResponseMock);
 
         $resultSubmissionStatusID = $this->client->importArticle($this->article, true, true);
         $this->assertEquals($expectedSubmissionStatusID, $resultSubmissionStatusID);
@@ -160,11 +160,11 @@ class ClientTest extends TestCase
     /**
      * Tests removing an article from an Instant Articles library.
      *
-     * @covers Facebook\InstantArticles\Client\Client::removeArticle()
+     * @covers \Facebook\InstantArticles\Client\Client::removeArticle()
      */
     public function testRemoveArticle()
     {
-        $canonicalURL = 'http://facebook.com';
+        $canonicalURL = 'https://facebook.com';
         $articleID = '1';
 
         // Use a mocked client with stubbed getArticleIDFromCanonicalURL().
@@ -792,7 +792,7 @@ class ClientTest extends TestCase
             ->with('PAGE_ID/claimed_urls?url=' .$url)
             ->willReturn($serverResponseMock);
 
-        $this->setExpectedException('\Facebook\InstantArticles\Client\ClientException');
+        $this->expectException('\Facebook\InstantArticles\Client\ClientException');
 
         $result = $this->client->claimURL($url);
     }
@@ -868,7 +868,7 @@ class ClientTest extends TestCase
             ->with('PAGE_ID/?instant_articles_submit_for_review=true')
             ->willReturn($serverResponseMock);
 
-        $this->setExpectedException('\Facebook\InstantArticles\Client\ClientException');
+        $this->expectException('\Facebook\InstantArticles\Client\ClientException');
 
         $result = $this->client->submitForReview();
     }
